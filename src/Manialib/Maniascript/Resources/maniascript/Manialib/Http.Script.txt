@@ -1,0 +1,80 @@
+#Include "Manialib/Logger.Script.txt" as Logger
+#Include "Manialib/Event.Script.txt" as Event
+
+declare Ident[Ident] G_Manialib_Http_Requests;
+declare Text[Ident] G_Manialib_Http_RequestsResultsSuccess;
+declare Text[Ident] G_Manialib_Http_RequestsResultsError;
+
+Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
+  declare Request <=> Http.CreatePost(_Url, _Data);
+  if (Request != Null) {
+    G_Manialib_Http_Requests[Request.Id] = Request.Id;
+  }
+  Logger::Debug("[HTTP] PostAsync: "^_Url);
+  return Request.Id;
+}
+
+Ident Manialib_Http_GetAsync(Text _Url) {
+  declare Request <=> Http.CreateGet(_Url, False);
+  if (Request != Null) {
+    G_Manialib_Http_Requests[Request.Id] = Request.Id;
+  }
+  Logger::Debug("[HTTP] GetAsync ("^Request.Id^"): "^_Url);
+  return Request.Id;
+}
+
+Void Private_Manialib_Http_HandleFinishedRequests() {
+  declare Ident[] ToRemove;
+  foreach (Request in Http.Requests) {
+    if (!G_Manialib_Http_Requests.existskey(Request.Id)) continue; //Ignore other requests
+    if (Request.IsCompleted) { 
+      if (Request.StatusCode == 200) {
+        G_Manialib_Http_RequestsResultsSuccess[Request.Id] = Request.Result;
+        Logger::Debug("[HTTP] OK "^Request.Id);
+        Event::DispatchCustomEvent("HTTP.Success", [""^Request.Id, Request.Result]);
+      }
+      else {
+        G_Manialib_Http_RequestsResultsError[Request.Id] = Request.Result;
+                Event::DispatchCustomEvent("HTTP.Error", [""^Request.Id, Request.Result]);
+                Logger::Debug("[HTTP] "^Request.Id^": "^Request.StatusCode);
+      }
+      ToRemove.add(Request.Id);
+    }
+  }
+  foreach (RequestId in ToRemove) {
+    G_Manialib_Http_Requests.removekey(RequestId);
+    Http.Destroy(Http.Requests[RequestId]);
+  }
+}
+
+Void Private_Manialib_Http_EmptyResultsSuccess() {
+  foreach(RequestId => Request in G_Manialib_Http_RequestsResultsSuccess) {
+    G_Manialib_Http_RequestsResultsSuccess.removekey(RequestId);
+  }
+}
+
+Void Private_Manialib_Http_EmptyResultsError() {
+  foreach(RequestId => Request in G_Manialib_Http_RequestsResultsError) {
+    G_Manialib_Http_RequestsResultsError.removekey(RequestId);
+  }
+}
+
+Text[Ident] Manialib_Http_PendingResponses() {
+  declare Text[Ident] result;
+  Private_Manialib_Http_HandleFinishedRequests();
+  result = G_Manialib_Http_RequestsResultsSuccess;
+  Private_Manialib_Http_EmptyResultsSuccess();
+  return result;
+}
+
+Text[Ident] Manialib_Http_PendingErrors() {
+  declare Text[Ident] result;
+  Private_Manialib_Http_HandleFinishedRequests();
+  result = G_Manialib_Http_RequestsResultsError;
+  Private_Manialib_Http_EmptyResultsError();
+  return result;
+}
+
+Void Manialib_Http_Loop() {
+    Private_Manialib_Http_HandleFinishedRequests();
+}

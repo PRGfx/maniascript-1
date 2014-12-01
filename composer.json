@@ -1,0 +1,29 @@
+{
+    "name": "manialib/maniascript",
+    "type": "library",
+    "description": "Autoloader, Compiler and a few Maniascript libraries to ease the developement of ManiaApp applications.",
+    "keywords": ["Ubisoft", "Nadeo", "ManiaPlanet", "ShootMania", "TrackMania", "Manialib", "Maniascript"],
+    "license": "MIT",
+    "homepage": "https://github.com/manialib",
+    "authors": [
+        {
+            "name": "Nadeo",
+            "email": "contact@nadeo.com",
+            "homepage": "http://www.nadeo.com/"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Manialib\\": "src/Manialib/"
+        }
+    },
+    "require": {
+        "php": ">=5.5",
+        "psr/log": "~1.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "4.0-dev"
+        }
+    }
+}
