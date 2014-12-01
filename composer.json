@@ -1,7 +1,7 @@
 {
     "name": "manialib/maniascript",
     "type": "library",
-    "description": "Autoloader, Compiler and a few Maniascript libraries to ease the developement of ManiaApp applications.",
+    "description": "Autoloader, Compiler and a few Maniascript libraries to ease the developement of Maniascript applications.",
     "keywords": ["Ubisoft", "Nadeo", "ManiaPlanet", "ShootMania", "TrackMania", "Manialib", "Maniascript"],
     "license": "MIT",
     "homepage": "https://github.com/manialib",
