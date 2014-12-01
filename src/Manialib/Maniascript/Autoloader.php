@@ -34,7 +34,6 @@ class Autoloader
 
     protected function getManiascript($library)
     {
-        var_dump($this->includePaths);
         if (!array_key_exists($library, $this->autoloadedLibrariesManiascripts)) {
             $filename = $this->exists($library);
             if (!$filename) {
