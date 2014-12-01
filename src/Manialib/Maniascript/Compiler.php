@@ -48,7 +48,7 @@ class Compiler
             $namespace = str_replace(["/", ".Script.txt"], ["_", "_"], $match[1]);
 
             // Replace Alias with namespace
-            $maniascript = preg_replace('%([^A-Za-z0-9_]*)('.$match[2].'::)%', '$1'.$namespace, $maniascript);
+            $maniascript = preg_replace('%([^A-Za-z0-9_]+)('.$match[2].'::)%', '$1'.$namespace, $maniascript);
         }
         return $maniascript;
     }
