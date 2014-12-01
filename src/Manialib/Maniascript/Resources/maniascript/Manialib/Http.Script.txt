@@ -10,7 +10,7 @@ Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
   }
-  Logger::Debug("[HTTP] PostAsync: "^_Url);
+  Logger::Debug("[Http] PostAsync: "^_Url);
   return Request.Id;
 }
 
@@ -19,7 +19,7 @@ Ident Manialib_Http_GetAsync(Text _Url) {
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
   }
-  Logger::Debug("[HTTP] GetAsync ("^Request.Id^"): "^_Url);
+  Logger::Debug("[Http] GetAsync ("^Request.Id^"): "^_Url);
   return Request.Id;
 }
 
@@ -30,13 +30,13 @@ Void Private_Manialib_Http_HandleFinishedRequests() {
     if (Request.IsCompleted) { 
       if (Request.StatusCode == 200) {
         G_Manialib_Http_RequestsResultsSuccess[Request.Id] = Request.Result;
-        Logger::Debug("[HTTP] OK "^Request.Id);
-        Event::DispatchCustomEvent("HTTP.Success", [""^Request.Id, Request.Result]);
+        Logger::Debug("[Http] OK "^Request.Id);
+        Event::DispatchCustomEvent("Manialib.Http.Success", [""^Request.Id, Request.Result]);
       }
       else {
         G_Manialib_Http_RequestsResultsError[Request.Id] = Request.Result;
-                Event::DispatchCustomEvent("HTTP.Error", [""^Request.Id, Request.Result]);
-                Logger::Debug("[HTTP] "^Request.Id^": "^Request.StatusCode);
+                Event::DispatchCustomEvent("Manialib.Http.Error", [""^Request.Id, Request.Result]);
+                Logger::Debug("[Http] "^Request.Id^": "^Request.StatusCode);
       }
       ToRemove.add(Request.Id);
     }
