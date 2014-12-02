@@ -1,0 +1,7 @@
+#Include "Foo/Bar.Script.txt" as Foobar
+#Include "Bar/Foo.Script.txt" as Barfoo
+
+Void HelloFunction() {
+    Foobar::BarFunction();
+    Barfoo::FooFunction();
+}

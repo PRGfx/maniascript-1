@@ -1,0 +1,6 @@
+#Include "TextLib" as BarTextLib
+
+Void Bar_Foo_FooFunction() {
+    BarTextLib::ToText(1);
+    return;
+}
