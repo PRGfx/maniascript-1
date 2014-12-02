@@ -78,6 +78,8 @@ class Autoloader implements AutoloaderInterface
     function autoloadOnce($library)
     {
         $lib = $this->doAutoload($library);
-        return $lib->autoloaded() ? '' : $lib->getContents();
+        $maniascript = $lib->autoloaded() ? '' : $lib->getContents();
+        $lib->setAutoloaded(true);
+        return $maniascript;
     }
 }
