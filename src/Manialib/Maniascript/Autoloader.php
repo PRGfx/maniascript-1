@@ -6,48 +6,50 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
 
-class Autoloader
+class Autoloader implements AutoloaderInterface
 {
 
     use \Psr\Log\LoggerAwareTrait;
     const NAMESPACE_INCLUDE_SEPARATOR = '/';
     const NAMESPACE_SCRIPT_SEPARATOR  = '_';
 
-    protected $includePaths                    = array();
-    protected $autoloadedLibrariesFilenames    = array();
+    protected $includePaths = array();
+    protected $libraries    = array();
+
+    /**
+     * @deprecated
+     */
+    protected $autoloadedLibrariesFilenames = array();
+
+    /**
+     * @deprecated
+     */
     protected $autoloadedLibrariesManiascripts = array();
 
-    protected function exists($library)
+    /**
+     * @return Library
+     * @throws LibraryNotFoundException
+     */
+    protected function doAutoload($library)
     {
-        if (!array_key_exists($library, $this->autoloadedLibrariesFilenames)) {
+        if (array_key_exists($library, $this->libraries)) {
+            return $this->libraries[$library];
+        } else {
             $filename = implode(DIRECTORY_SEPARATOR, explode(self::NAMESPACE_INCLUDE_SEPARATOR, $library));
-
             foreach ($this->includePaths as $includePath) {
                 if (file_exists($includePath.DIRECTORY_SEPARATOR.$filename)) {
-                    $this->autoloadedLibrariesFilenames[$library] = $includePath.DIRECTORY_SEPARATOR.$filename;
-                    return $this->autoloadedLibrariesFilenames[$library];
+                    $lib                       = new Library($library, $includePath.DIRECTORY_SEPARATOR.$filename);
+                    $this->libraries[$library] = $lib;
+                    return $lib;
                 }
             }
         }
-        return false;
-    }
-
-    protected function getManiascript($library)
-    {
-        if (!array_key_exists($library, $this->autoloadedLibrariesManiascripts)) {
-            $filename = $this->exists($library);
-            if (!$filename) {
-                throw new RuntimeException(sprintf('Maniascript library "%s" not found.', $library));
-            }
-            $this->logger->info('Autoloaded Maniascript library: '.$library);
-            $this->autoloadedLibrariesManiascripts[$library] = file_get_contents($filename);
-        }
-        return $this->autoloadedLibrariesManiascripts[$library];
+        throw new LibraryNotFoundException($library);
     }
 
     function __construct(LoggerInterface $logger = null)
     {
-        $this->logger      = $logger ? : new NullLogger();
+        $this->logger       = $logger ? : new NullLogger();
         $this->includePaths = [ __DIR__.'/Resources/maniascript'];
     }
 
@@ -56,8 +58,26 @@ class Autoloader
         $this->includePaths[] = $path;
     }
 
+    public function exists($library)
+    {
+        try {
+            $this->doAutoload($library);
+            return true;
+        } catch (LibraryNotFoundException $e) {
+            return false;
+        }
+    }
+
     function autoload($library)
     {
-        return $this->getManiascript($library);
+        $lib = $this->doAutoload($library);
+        $lib->setAutoloaded(true);
+        return $lib->getContents();
+    }
+
+    function autoloadOnce($library)
+    {
+        $lib = $this->doAutoload($library);
+        return $lib->autoloaded() ? '' : $lib->getContents();
     }
 }

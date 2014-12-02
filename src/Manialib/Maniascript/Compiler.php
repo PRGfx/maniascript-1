@@ -5,7 +5,7 @@ namespace Manialib\Maniascript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class Compiler
+class Compiler implements CompilerInterface
 {
 
     use \Psr\Log\LoggerAwareTrait;
@@ -21,11 +21,6 @@ class Compiler
         "MathLib",
     ];
 
-    protected function addHeaderFilter($library, $maniascript)
-    {
-        return "//Autoloaded: $library\n\n$maniascript\n";
-    }
-
     protected function virtualIncludeFilter($library, $maniascript)
     {
         $includeRegexp = '%#Include +"([A-Za-z0-9_/\.-]+)" +as +([A-Za-z0-9_]+)%m';
@@ -33,19 +28,16 @@ class Compiler
         foreach ($matches as $match) {
             // Include once inline
             $includedLibrary = $match[1];
-            if (in_array($includedLibrary, $this->ignoredLibraries)) {
-                continue;
-            }
-            if (!in_array($includedLibrary, $this->includedLibraries)) {
-                $includedManiascript       = $this->compile($includedLibrary);
-                $this->includedLibraries[] = $includedLibrary;
+            if (!in_array($includedLibrary, $this->ignoredLibraries)) {
+                $includedManiascript = $this->compile($includedLibrary);
             } else {
-                $includedManiascript = '//Not autoloaded: already included';
+                $includedManiascript = '';
+                $includedLibrary     = $includedLibrary.'::';
             }
-            $maniascript = preg_replace('%'.$match[0].'%', '//'.$match[0]."\n".$includedManiascript, $maniascript);
+            $maniascript = preg_replace('%'.$match[0].'%', $includedManiascript, $maniascript);
 
             // Understand Maniascript namespace
-            $namespace = str_replace(["/", ".Script.txt"], ["_", "_"], $match[1]);
+            $namespace = str_replace(["/", ".Script.txt"], ["_", "_"], $includedLibrary);
 
             // Replace Alias with namespace
             $maniascript = preg_replace('%([^A-Za-z0-9_]+)('.$match[2].'::)%', '$1'.$namespace, $maniascript);
@@ -59,7 +51,6 @@ class Compiler
         $this->logger     = $logger ? : new NullLogger();
 
         $this->compilerFilters = [
-            [$this, 'addHeaderFilter'],
             [$this, 'virtualIncludeFilter'],
         ];
     }
@@ -71,13 +62,15 @@ class Compiler
 
     function compile($library)
     {
-        if (!array_key_exists($library, $this->compiledLibraries)) {
-            $maniascript = $this->autoloader->autoload($library);
+        if (!$library) {
+            throw new Exception('wat?');
+        }
+        $maniascript = $this->autoloader->autoloadOnce($library);
+        if ($maniascript) {
             foreach ($this->compilerFilters as $callback) {
                 $maniascript = call_user_func($callback, $library, $maniascript);
             }
-            $this->compiledLibraries[$library] = $maniascript;
         }
-        return $this->compiledLibraries[$library];
+        return $maniascript;
     }
 }
