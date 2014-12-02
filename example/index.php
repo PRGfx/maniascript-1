@@ -16,9 +16,13 @@ echo $compiler->compile('Hello.Script.txt');
 /** Will echo:
 
 Void Foo_Bar_BarFunction() {
+    TextLib::ToText(1);
     return;
 }
+
+
 Void Bar_Foo_FooFunction() {
+    TextLib::ToText(1);
     return;
 }
 

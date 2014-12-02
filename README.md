@@ -2,9 +2,7 @@
 
 > **Unstable!**
 
-Standalone PHP component to help with developing a Maniascript application. This is part of [Manialib](https://github.com/manialib/manialib).
-
-The goal is to help writing single-file Maniascript applications using practices similar to game modes, editor plugins, etc. Specifically, using `#Include XX as YY` directives and autoloading `XX` from a predefined set of paths.
+Standalone PHP component to help developing Maniascript applications for the Manialink browser. This is part of [Manialib](https://github.com/manialib/manialib).
 
 ## Autoloader
 
@@ -22,7 +20,7 @@ See [Manialib\Maniascript\AutoloaderInterface](https://github.com/manialib/mania
 
 ## Limitations
 
-Right now, inclued libaries must be written with "full namespaces", compared to standard #Includes where you only define the function name, not the fully qualified function name.
+Right now, included libraries must be written with "full namespaces", compared to standard #Includes where you only define the function name, not the fully qualified function name.
 
 Eg. if you're using `#Include "Manialib/Logger.Script.txt" as Logger` and `Logger::Info()`, the `Info()` function in the Logger library will be defined as `Manialib_Logger_Info()` whereas with standard #Includes it would be defined as `Info()`.
 
