@@ -32,9 +32,9 @@ Void Private_Manialib_Http_HandleFinishedRequests() {
         if (!G_Manialib_Http_Requests.existskey(Request.Id)) continue; //Ignore other requests
         if (Request.IsCompleted) { 
             G_Manialib_Http_RequestsExec[Request.Id] = Now - G_Manialib_Http_RequestsExec[Request.Id];
-            if (Request.StatusCode == 200) {
+            if (ML::FloorInteger(Request.StatusCode/100.) == 2) {
                 G_Manialib_Http_RequestsResultsSuccess[Request.Id] = Request.Result;
-                Logger::Info("[Http] "^Request.Id^" OK 200 in "^G_Manialib_Http_RequestsExec[Request.Id]^"ms");
+                Logger::Info("[Http] "^Request.Id^" OK "^Request.StatusCode^" in "^G_Manialib_Http_RequestsExec[Request.Id]^"ms");
                 Event::DispatchCustomEvent("Manialib.Http.Success", [""^Request.Id, Request.Result]);
             } else {
                 G_Manialib_Http_RequestsResultsError[Request.Id] = Request.Result;
