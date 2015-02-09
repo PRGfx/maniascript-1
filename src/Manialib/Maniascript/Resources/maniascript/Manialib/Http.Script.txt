@@ -6,8 +6,13 @@ declare Text[Ident] G_Manialib_Http_RequestsResultsSuccess;
 declare Text[Ident] G_Manialib_Http_RequestsResultsError;
 declare Integer[Ident] G_Manialib_Http_RequestsExec;
 
+Text Private_Manialib_Http_GetDefaultHeaders() {
+    return """Accept: application/xml
+Content-Type: application/json""";
+}
+
 Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
-  declare Request <=> Http.CreatePost(_Url, _Data);
+  declare Request <=> Http.CreatePost(_Url, _Data, Private_Manialib_Http_GetDefaultHeaders());
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
     G_Manialib_Http_RequestsExec[Request.Id] = Now;
@@ -17,7 +22,7 @@ Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
 }
 
 Ident Manialib_Http_GetAsync(Text _Url) {
-  declare Request <=> Http.CreateGet(_Url, False);
+  declare Request <=> Http.CreateGet(_Url, False, Private_Manialib_Http_GetDefaultHeaders());
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
     G_Manialib_Http_RequestsExec[Request.Id] = Now;
