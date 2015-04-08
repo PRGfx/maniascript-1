@@ -6,13 +6,31 @@ declare Text[Ident] G_Manialib_Http_RequestsResultsSuccess;
 declare Text[Ident] G_Manialib_Http_RequestsResultsError;
 declare Integer[Ident] G_Manialib_Http_RequestsExec;
 
-Text Private_Manialib_Http_GetDefaultHeaders() {
-    return """Accept: application/xml
-Content-Type: application/json""";
+Text[Text] Private_Manialib_Http_GetDefaultHeaders() {
+    declare Text[Text] DefaultHeaders;
+    DefaultHeaders["Accept"] = "application/xml";
+    DefaultHeaders["Content-Type"] = "application/json";
+    return DefaultHeaders;
 }
 
-Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
-  declare Request <=> Http.CreatePost(_Url, _Data, Private_Manialib_Http_GetDefaultHeaders());
+Text[Text] Private_Manialib_Http_GetHeaders(Text[Text] _Headers) {
+    declare Text[Text] Headers = Private_Manialib_Http_GetDefaultHeaders();
+    foreach(Key => Value in _Headers) {
+        Headers[Key] = Value;
+    }
+    return Headers;
+}
+
+Text Private_Manialib_Http_GetLinearizedHeader(Text[Text] _Headers) {
+    declare Text Result = "";
+    foreach(Key => Value in Private_Manialib_Http_GetHeaders(_Headers)) {
+        Result ^= Key ^": "^ Value ^ "\n";
+    }
+    return Result;
+}
+
+Ident Manialib_Http_PostAsync(Text _Url, Text _Data, Text[Text] _Headers) {
+  declare Request <=> Http.CreatePost(_Url, _Data, Private_Manialib_Http_GetLinearizedHeader(_Headers));
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
     G_Manialib_Http_RequestsExec[Request.Id] = Now;
@@ -21,14 +39,25 @@ Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
   return Request.Id;
 }
 
-Ident Manialib_Http_GetAsync(Text _Url) {
-  declare Request <=> Http.CreateGet(_Url, False, Private_Manialib_Http_GetDefaultHeaders());
+Ident Manialib_Http_PostAsync(Text _Url, Text _Data) {
+    declare Text[Text] NoHeaders;
+    return Manialib_Http_PostAsync(_Url, _Data, NoHeaders);
+}
+
+Ident Manialib_Http_GetAsync(Text _Url, Text[Text] _Headers) {
+Logger::Debug(Private_Manialib_Http_GetLinearizedHeader(_Headers));
+  declare Request <=> Http.CreateGet(_Url, False, Private_Manialib_Http_GetLinearizedHeader(_Headers));
   if (Request != Null) {
     G_Manialib_Http_Requests[Request.Id] = Request.Id;
     G_Manialib_Http_RequestsExec[Request.Id] = Now;
   }
   Logger::Info("[Http] "^Request.Id^" GET "^_Url);
   return Request.Id;
+}
+
+Ident Manialib_Http_GetAsync(Text _Url) {
+    declare Text[Text] NoHeaders;
+    return Manialib_Http_GetAsync(_Url, NoHeaders);
 }
 
 Void Private_Manialib_Http_HandleFinishedRequests() {
